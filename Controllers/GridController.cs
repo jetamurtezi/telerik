@@ -2,31 +2,58 @@
 using Kendo.Mvc.UI;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using telerik.Data;
 using telerik.Models;
 
 namespace telerik.Controllers
 {
     public class GridController : Controller
     {
+        private readonly ApplicationDbContext _db;
 
+        public GridController(ApplicationDbContext db)
+        {
+            _db = db;
+        }
         public IActionResult Customers()
         {
             return View();
         }
-        public ActionResult Customers_Read([DataSourceRequest] DataSourceRequest request)
+        public IActionResult Customers_Read([DataSourceRequest] DataSourceRequest request)
         {
-            var result = Enumerable.Range(0, 50).Select(i => new Customer
+            return Json(_db.Customers.ToDataSourceResult(request));
+        }
+        [HttpPost]
+        public IActionResult Customers_Create([DataSourceRequest] DataSourceRequest request, Customer customer)
+        {
+            if (ModelState.IsValid)
             {
-                CompanyName = "Company Name " + i,
-                ContactName = "Contact Name " + i,
-                ContactTitle = "Contact Title " + i,
-                Country = "Coutry " + i
-            });
-
-            var dsResult = result.ToDataSourceResult(request);
-            return Json(dsResult);
+                _db.Add(customer);
+                _db.SaveChanges();
+            }
+            return Json(new[] { customer }.ToDataSourceResult(request, ModelState));
+        }
+        [HttpPost]
+        public IActionResult Customers_Update([DataSourceRequest] DataSourceRequest request, Customer customer)
+        {
+            if (ModelState.IsValid)
+            {
+                _db.Update(customer);
+                _db.SaveChanges();
+            }
+            return Json(new[] { customer }.ToDataSourceResult(request, ModelState));
         }
 
-        
+        [HttpPost]
+        public IActionResult Customer_Delete([DataSourceRequest] DataSourceRequest request, Customer customer)
+        {
+            if (ModelState.IsValid)
+            {
+                _db.Remove(customer);
+                _db.SaveChanges();
+            }
+            return Json(new[] { customer }.ToDataSourceResult(request, ModelState));
+        }
     }
 }
