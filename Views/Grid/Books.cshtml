@@ -1,0 +1,44 @@
+﻿@using Kendo.Mvc.UI
+@{
+    ViewData["Title"] = "Books";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Books Grid</h2>
+
+@(
+Html.Kendo().Grid<telerik.Models.Book>()
+    .Name("grid")
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.Title).Width(140);
+        columns.Bound(c => c.Author).Width(190);
+        columns.Bound(c => c.CoverImage).ClientTemplate("<input name='coverUpload' type='file' class='k-upload' />")
+        .Title("Upload Cover");
+        columns.Bound(c => c.Genre);
+        columns.Bound(c => c.Publisher);
+        columns.Bound(c => c.YearPublished).Width(110);
+        columns.Command(command =>
+        {
+            command.Edit();
+            command.Destroy();
+        }).Title("Actions").Width(200);
+    })
+    .ToolBar(toolbar=>toolbar.Create())
+    .Editable(editable=> editable.Mode(GridEditMode.InLine))
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Model(model => model.Id(c=>c.Id))
+        .Read(read => read.Action("Books_Read", "Grid"))
+        .Create(create => create.Action("Books_Create", "Grid"))
+        .Update(update => update.Action("Books_Update", "Grid"))
+        .Destroy(destroy => destroy.Action("Books_Delete", "Grid"))
+    )
+)
+
+@section Scripts {
+    @Html.Kendo().DeferredScripts() 
+}
