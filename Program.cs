@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using telerik.Data;
+using telerik.Services;
 
 namespace telerik
 {
@@ -15,7 +16,7 @@ namespace telerik
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+            builder.Services.AddScoped<IBookService, BookService>();
             builder.Services.AddKendo();
             builder.Services.AddMvc().AddRazorRuntimeCompilation().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
             var app = builder.Build();

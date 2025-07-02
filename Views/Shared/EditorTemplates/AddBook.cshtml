@@ -1,0 +1,68 @@
+﻿@using Kendo.Mvc.UI
+@model telerik.Models.Book
+
+<style>
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+</style>
+
+<div class="k-edit-form-container">
+    <div class="form-group">
+        @Html.LabelFor(m => m.Title)
+        @Html.TextBoxFor(m => m.Title, new { @class = "k-textbox" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Author)
+        @Html.TextBoxFor(m => m.Author, new { @class = "k-textbox" })
+    </div>
+
+    <div class="form-group">
+        @Html.Label("Cover Image")
+        @(Html.Kendo().Upload()
+                .Name("file")
+                .Async(a => a
+                .Save("UploadCoverImage", "Book")
+                .Remove("RemoveCoverImage", "Book")
+                .AutoUpload(true)
+                )
+                .Events(e => e.Success("onUploadSuccess"))
+                )
+        @Html.HiddenFor(m => m.CoverImage, new { id = "CoverImage", name = "CoverImage" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Genre)
+        @Html.TextBoxFor(m => m.Genre, new { @class = "k-textbox" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Publisher)
+        @Html.TextBoxFor(m => m.Publisher, new { @class = "k-textbox" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.YearPublished)
+        @Html.TextBoxFor(m => m.YearPublished, new { @class = "k-textbox", type = "number" })
+    </div>
+</div>
+
+<script>
+    function onUploadSuccess(e) {
+        if (e.response && e.response.CoverImagePath) {
+            $("#CoverImage").val(e.response.CoverImagePath);
+        }
+    }
+
+    function onGridSave(e) {
+        const coverImage = $("#CoverImage").val();
+        e.model.CoverImage = coverImage;
+    }
+</script>

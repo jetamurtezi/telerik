@@ -5,41 +5,51 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using telerik.Data;
 using telerik.Models;
+using telerik.Services;
 
 namespace telerik.Controllers
 {
-    public class GridController : Controller
+    public class BookController : Controller
     {
         private readonly ApplicationDbContext _db;
+        private readonly IBookService _bookService;
 
-        public GridController(ApplicationDbContext db)
+        public BookController(ApplicationDbContext db, IBookService bookService)
         {
             _db = db;
+            _bookService = bookService;
         }
-        public IActionResult Books()
+        public IActionResult Index()
         {
-            return View();
+            var books = _db.Book.ToList();
+            return View("Book", books);
         }
+
         public IActionResult Books_Read([DataSourceRequest] DataSourceRequest request)
         {
             return Json(_db.Book.ToDataSourceResult(request));
         }
+
         [HttpPost]
         public IActionResult Books_Create([DataSourceRequest] DataSourceRequest request, Book book)
         {
             if (ModelState.IsValid)
             {
-                _db.Add(book);
+                _db.Book.Add(book);
                 _db.SaveChanges();
             }
+
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
         }
+
+
+
         [HttpPost]
         public IActionResult Books_Update([DataSourceRequest] DataSourceRequest request, Book book)
         {
             if (ModelState.IsValid)
             {
-                _db.Update(book);
+                _db.Book.Update(book);
                 _db.SaveChanges();
             }
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
@@ -54,6 +64,22 @@ namespace telerik.Controllers
                 _db.SaveChanges();
             }
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
+        }
+        [HttpPost]
+        public async Task<IActionResult> UploadCoverImage(IFormFile file)
+        {
+            var path = await _bookService.UploadCoverImageAsync(file);
+            if (path == null)
+                return BadRequest("File upload failed.");
+
+            return Json(new { CoverImagePath = path });
+        }
+
+        [HttpPost]
+        public IActionResult RemoveCoverImage([FromBody] string[] fileNames)
+        {
+            _bookService.RemoveFiles(fileNames);
+            return Ok();
         }
     }
 }
