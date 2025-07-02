@@ -6,61 +6,58 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Books Grid</h2>
+<h2 class="mb-4">Books Grid</h2>
 
-@(Html.Kendo().Grid<telerik.Models.Book>()
-    .Name("grid")
-    .Columns(columns =>
-    {
-        columns.Bound(c => c.Title).Width(140);
-        columns.Bound(c => c.Author).Width(190);
-        columns.Bound(c => c.CoverImage)
-            .Title("Cover")
-            .ClientTemplate(
-                "# if (CoverImage) { #" +
-                "<img src='#= CoverImage #' alt='Cover' width='50' height='70' />" +
-                "# } else { #" +
-                "<span>No Image</span>" +
-                "# } #"
-            ).Width(100);
-        columns.Bound(c => c.Genre);
-        columns.Bound(c => c.Publisher);
-        columns.Bound(c => c.YearPublished).Width(110);
-        columns.Command(command =>
+<div class="container-fluid">
+    @(Html.Kendo().Grid<telerik.Models.Book>()
+        .Name("grid")
+        .Columns(columns =>
         {
-            command.Edit();
-            command.Destroy();
-        }).Title("Actions").Width(180);
-    })
-    .ToolBar(toolbar => toolbar.Create())
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("AddBook"))
-    .Events(e => e.Save("onGridSave"))
-    .Pageable()
-    .Sortable()
-    .Scrollable()
-    .DataSource(dataSource => dataSource
+            columns.Bound(c => c.Title).Width(180).Title("Titulli");
+            columns.Bound(c => c.Author).Width(160).Title("Autori");
+            columns.Bound(c => c.CoverImage)
+            .Title("Kopertina")
+            .ClientTemplate(
+            "# if (CoverImage) { #" +
+            "<img src='#= CoverImage #' alt='Cover' width='50' height='70' />" +
+            "# } else { #" +
+            "<span>No Image</span>" +
+            "# } #"
+            ).Width(100);
+            columns.Bound(c => c.Price).Title("Çmimi (€)").Format("{0:C}").Width(90);
+            columns.Bound(c => c.Genre).Title("Zhanri").Width(110);
+            columns.Bound(c => c.Publisher).Title("Publikuesi").Width(160);
+            columns.Bound(c => c.YearPublished).Title("Viti i publikimit").Width(110);
+            columns.Bound(c => c.Stock).Title("Stock").Width(90);
+            columns.Bound(c => c.InStock).Title("Në stok").Width(100);
+            columns.Command(command =>
+            {
+                command.Edit();
+                command.Destroy();
+            }).Title("Actions").Width(130);
+        })
+        .ToolBar(toolbar => toolbar.Create())
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("AddBook"))
+        .Events(e => e.Save("onGridSave"))
+        .Pageable()
+        .Sortable()
+        .Scrollable()
+        .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+        .DataSource(dataSource => dataSource
         .Ajax()
         .Model(model => model.Id(c => c.Id))
         .Read(read => read.Action("Books_Read", "Book"))
         .Create(create => create.Action("Books_Create", "Book"))
         .Update(update => update.Action("Books_Update", "Book"))
         .Destroy(destroy => destroy.Action("Books_Delete", "Book"))
-    )
-)
+        )
+        )
+</div>
 
 @section Scripts {
     @Html.Kendo().DeferredScripts()
 
     <script>
-        function onGridSave(e) {
-            const coverImage = $("#CoverImage").val();
-            if (coverImage) {
-                e.model.CoverImage = coverImage;
-            }
-        }
-    </script>
-    <script>
-        // Duhet të jetë global function
         function onUploadSuccess(e) {
             if (e.response && e.response.CoverImagePath) {
                 $("input[name='CoverImage']").val(e.response.CoverImagePath);
@@ -74,5 +71,25 @@
             }
         }
     </script>
-}
 
+    <style>
+        #grid .k-grid-content {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+        }
+
+        #grid .k-grid-header th {
+            white-space: nowrap;
+        }
+
+        #grid td, #grid th {
+            padding: 8px 10px;
+        }
+
+        .k-grid .k-button.k-grid-edit,
+        .k-grid .k-button.k-grid-delete {
+            padding: 4px 8px;
+            font-size: 13px;
+        }
+    </style>
+}

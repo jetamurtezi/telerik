@@ -14,5 +14,9 @@ namespace telerik.Models
         public string Publisher { get; set; }
         public string YearPublished { get; set; }
         public string? CoverImage { get; set; }
+        [Required]
+        public decimal? Price { get; set; }
+        public int? Stock { get; set; }
+        public string? InStock => Stock > 0 ? "Available" : "Not Available";
     }
 }

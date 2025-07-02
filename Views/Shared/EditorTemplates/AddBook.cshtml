@@ -52,6 +52,15 @@
         @Html.LabelFor(m => m.YearPublished)
         @Html.TextBoxFor(m => m.YearPublished, new { @class = "k-textbox", type = "number" })
     </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Stock)
+        @Html.TextBoxFor(m => m.Stock, new { @class = "k-textbox", type = "number", min = "0" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Price)
+        @Html.TextBoxFor(m => m.Price, new { @class = "k-textbox", type = "number", step = "0.01", min = "0" })
+    </div>
 </div>
 
 <script>
