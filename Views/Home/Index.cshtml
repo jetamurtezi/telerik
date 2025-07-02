@@ -1,10 +1,59 @@
-﻿
+﻿@model IEnumerable<telerik.Models.Book>
+
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Bookshop Home";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast-message" id="toastMessage">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="container">
+    <div class="sidebar">
+        <h3>Zhanret</h3>
+        <button class="filter-btn" data-genre="All">Të gjitha</button>
+        @foreach (var genre in Model.Select(b => b.Genre).Distinct())
+        {
+            <button class="filter-btn" data-genre="@genre">@genre</button>
+        }
+    </div>
+
+    <div class="card-grid">
+        @foreach (var book in Model)
+        {
+            <a href="@Url.Action("Details", "Book", new { id = book.Id })" class="book-card" data-genre="@book.Genre">
+                <img src="@book.CoverImage" alt="Cover" class="cover-img" />
+                <h4>@book.Title</h4>
+                <p>@book.Author</p>
+                <p><strong>@book.Price €</strong></p>
+            </a>
+        }
+    </div>
 </div>
 
+@section Scripts {
+    <script>
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const genre = btn.getAttribute("data-genre");
+                document.querySelectorAll(".book-card").forEach(card => {
+                    card.style.display = (genre === "All" || card.getAttribute("data-genre") === genre) ? "block" : "none";
+                });
+            });
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const toast = document.getElementById("toastMessage");
+            if (toast) {
+                toast.classList.add("show");
+                setTimeout(() => {
+                    toast.classList.remove("show");
+                }, 3000); 
+            }
+        });
+    </script>
+}

@@ -1,0 +1,34 @@
+﻿@model telerik.Models.Book
+
+@{
+    ViewData["Title"] = "Detajet e Librit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="book-details">
+    <!-- Foto e librit -->
+    <img src="@Model.CoverImage" alt="Cover" class="cover-img-large" />
+
+    <!-- Detajet në të djathtë të fotos -->
+    <div class="details-info">
+        <h2>@Model.Title</h2>
+        <p><strong>Autori:</strong> @Model.Author</p>
+        <p><strong>Zhanri:</strong> @Model.Genre</p>
+        <p><strong>Publikuesi:</strong> @Model.Publisher</p>
+        <p><strong>Viti i publikimit:</strong> @Model.YearPublished</p>
+        <p><strong>Çmimi:</strong> @Model.Price €</p>
+        <p><strong>Stoku:</strong> @(Model.Stock > 0 ? "Në dispozicion" : "Nuk ka në stok")</p>
+
+        @if (Model.Stock > 0)
+        {
+            <form asp-action="Buy" asp-controller="Book" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="buy-btn">Blej Librin</button>
+            </form>
+        }
+        else
+        {
+            <p style="color:red;"><strong>Ky libër nuk është në dispozicion për momentin.</strong></p>
+        }
+    </div>
+</div>

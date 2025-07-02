@@ -81,5 +81,36 @@ namespace telerik.Controllers
             _bookService.RemoveFiles(fileNames);
             return Ok();
         }
+
+        public IActionResult Details(int id)
+        {
+            var book = _db.Book.FirstOrDefault(b => b.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            return View(book);
+        }
+        [HttpPost]
+        public IActionResult Buy(int id)
+        {
+            var book = _db.Book.Find(id);
+            if (book == null || book.Stock <= 0)
+            {
+                return NotFound();
+            }
+
+            book.Stock -= 1;
+            _db.SaveChanges();
+
+            TempData["SuccessMessage"] = "Faleminderit! Blerja u krye me sukses.";
+
+            return RedirectToAction("Index", "Home");
+        }
+
+
+
+
+
     }
 }
