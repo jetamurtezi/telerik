@@ -1,23 +1,28 @@
-﻿@model telerik.Models.Book
+﻿<div class="book-details">
+    <div>
+        <img src="@Model.CoverImage" alt="Cover" class="cover-img-large" />
+    </div>
 
-@{
-    ViewData["Title"] = "Detajet e Librit";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-<div class="book-details">
-    <!-- Foto e librit -->
-    <img src="@Model.CoverImage" alt="Cover" class="cover-img-large" />
-
-    <!-- Detajet në të djathtë të fotos -->
     <div class="details-info">
         <h2>@Model.Title</h2>
-        <p><strong>Autori:</strong> @Model.Author</p>
+        <p style="color: #b30000; font-weight: bold;">@Model.Author.ToUpper()</p>
+        <p style="font-size: 22px; font-weight: bold; margin-top: 10px;">@Model.Price €</p>
+
         <p><strong>Zhanri:</strong> @Model.Genre</p>
         <p><strong>Publikuesi:</strong> @Model.Publisher</p>
-        <p><strong>Viti i publikimit:</strong> @Model.YearPublished</p>
-        <p><strong>Çmimi:</strong> @Model.Price €</p>
-        <p><strong>Stoku:</strong> @(Model.Stock > 0 ? "Në dispozicion" : "Nuk ka në stok")</p>
+        <p><strong>Viti i Publikimit:</strong> @Model.YearPublished</p>
+
+        <p>
+            <strong>Stoku:</strong>
+            @if (Model.Stock > 0)
+            {
+                <span style="color: green; font-weight: bold;">Në dispozicion (@Model.Stock)</span>
+            }
+            else
+            {
+                <span style="color: red;">Nuk ka në stok</span>
+            }
+        </p>
 
         @if (Model.Stock > 0)
         {
@@ -25,10 +30,6 @@
                 <input type="hidden" name="id" value="@Model.Id" />
                 <button type="submit" class="buy-btn">Blej Librin</button>
             </form>
-        }
-        else
-        {
-            <p style="color:red;"><strong>Ky libër nuk është në dispozicion për momentin.</strong></p>
         }
     </div>
 </div>
