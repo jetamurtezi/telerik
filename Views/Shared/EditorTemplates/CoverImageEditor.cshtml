@@ -1,0 +1,20 @@
+﻿@model telerik.Models.Book
+
+<script>
+    function onUploadSuccess(e) {
+        if (e.response && e.response.fileUrl) {
+            $("#coverImagePath").val(e.response.fileUrl);
+        }
+    }
+</script>
+<div>
+    @(Html.Kendo().Upload()
+        .Name("CoverImage")
+        .Async(a => a
+        .Save("UploadCoverImage", "Book")
+        .AutoUpload(true)) 
+        .Events(e => e
+        .Success("onUploadSuccess"))
+        )
+    @Html.HiddenFor(m => m.CoverImage, new { id = "coverImagePath" })
+</div>

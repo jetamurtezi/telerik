@@ -40,7 +40,10 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Libra</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="TreeListView">Kategorite</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="GridView">Libra</a>
                         </li>
                     </ul>
                 </div>
@@ -60,7 +63,7 @@
         </div>
     </footer>
 
-    @await RenderSectionAsync("Scripts", required: false)
+    @RenderSection("Scripts", required: false)
 
     <!-- ✅ Add this to enable DeferredScripts -->
     @Html.Kendo().DeferredScripts()

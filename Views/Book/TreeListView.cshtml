@@ -1,0 +1,63 @@
+﻿@model IEnumerable<telerik.Models.BookCategory>
+
+@{
+    ViewData["Title"] = "Kategoritë e Librave";
+}
+
+<button id="addRootCategory" class="k-button k-primary" style="margin-bottom:10px;">
+    + SHTO KATEGORI
+</button>
+
+@(Html.Kendo().TreeList<telerik.Models.BookCategory>()
+    .Name("categoryTreeList")
+    .Columns(columns =>
+    {
+        columns.Add().Field(e => e.Name).Title("Kategoria").Width(250);
+        columns.Add().Command(command =>
+        {
+            command.Edit().Text("Edito");
+            command.Destroy().Text("Fshi");
+        }).Title("Veprime").Width(200);
+    })
+    .Editable(editable => editable.Mode("inline"))
+    .DataSource(dataSource => dataSource
+        .Model(model =>
+        {
+            model.Id(m => m.Id);
+            model.ParentId(m => m.ParentId);
+            model.Field(m => m.Name);
+        })
+        .Read(read => read.Action("GetBookCategories", "Book"))
+        .Create(create => create.Action("CreateCategory", "Book"))
+        .Update(update => update.Action("UpdateCategory", "Book"))
+        .Destroy(delete => delete.Action("DeleteCategory", "Book"))
+    )
+)
+
+<script>
+    $(document).ready(function () {
+        var treeList = $("#categoryTreeList").data("kendoTreeList");
+
+        $("#addRootCategory").click(function () {
+            treeList.addRow();
+        });
+
+        treeList.tbody.on("click", ".add-subcategory", function () {
+            var parentDataItem = treeList.dataItem($(this).closest("tr"));
+            treeList.addRow(parentDataItem);
+        });
+
+        treeList.bind("dataBound", function () {
+            treeList.tbody.find("tr").each(function () {
+                var dataItem = treeList.dataItem(this);
+                var cell = $(this).find("td").last();
+                cell.find(".add-subcategory").remove();
+
+                if (dataItem.ParentId === null) {
+                    $("<button class='k-button add-subcategory'>+ SHTO SUBKATEGORI</button>")
+                        .appendTo(cell);
+                }
+            });
+        });
+    });
+</script>

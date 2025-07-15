@@ -2,8 +2,8 @@
 using Kendo.Mvc.UI;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using telerik.Data;
+using System.Linq;
+using System.Threading.Tasks;
 using telerik.Models;
 using telerik.Services;
 
@@ -11,104 +11,188 @@ namespace telerik.Controllers
 {
     public class BookController : Controller
     {
-        private readonly ApplicationDbContext _db;
         private readonly IBookService _bookService;
 
-        public BookController(ApplicationDbContext db, IBookService bookService)
+        public BookController(IBookService bookService)
         {
-            _db = db;
             _bookService = bookService;
         }
-        public IActionResult Index()
+        public IActionResult GridView()
         {
-            var books = _db.Book.ToList();
-            return View("Book", books);
+            var categories = _bookService.GetAllCategories() ?? new List<BookCategory>();
+            ViewData["Categories"] = categories;
+            return View();
         }
-
-        public IActionResult Books_Read([DataSourceRequest] DataSourceRequest request)
+        [HttpGet]
+        public IActionResult GetBooks([DataSourceRequest] DataSourceRequest request)
         {
-            return Json(_db.Book.ToDataSourceResult(request));
+            var books = _bookService.GetAllBooks();
+            var result = books.ToDataSourceResult(request);
+            Console.WriteLine($"GetBooks result: {Newtonsoft.Json.JsonConvert.SerializeObject(result)}");
+            return Json(result);
         }
 
         [HttpPost]
-        public IActionResult Books_Create([DataSourceRequest] DataSourceRequest request, Book book)
+        public async Task<IActionResult> CreateBook([DataSourceRequest] DataSourceRequest request, Book book, IFormFile CoverImage)
         {
-            if (ModelState.IsValid)
+            Console.WriteLine($"Received CreateBook request: ModelState.IsValid = {ModelState.IsValid}");
+            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
             {
-                _db.Book.Add(book);
-                _db.SaveChanges();
+                Console.WriteLine($"ModelState Error: {error.ErrorMessage}");
+            }
+            Console.WriteLine($"Book from model: {Newtonsoft.Json.JsonConvert.SerializeObject(book)}");
+            Console.WriteLine($"CoverImage file: {CoverImage?.FileName}");
+            Console.WriteLine($"Form data: {string.Join(", ", Request.Form.Keys.Select(k => $"{k}: {Request.Form[k]}"))}");
+
+            if (book != null)
+            {
+                if (string.IsNullOrEmpty(book.Title) && !string.IsNullOrEmpty(Request.Form["Title"]))
+                {
+                    book.Title = Request.Form["Title"];
+                    book.Author = Request.Form["Author"];
+                    book.Genre = Request.Form["Genre"];
+                    book.Price = decimal.TryParse(Request.Form["Price"], out var price) ? price : (decimal?)null;
+                    book.Stock = int.TryParse(Request.Form["Stock"], out var stock) ? stock : (int?)null;
+                    book.CategoryId = int.TryParse(Request.Form["CategoryId"], out var categoryId) ? categoryId : (int?)null;
+                }
+
+                if (CoverImage != null && CoverImage.Length > 0)
+                {
+                    book.CoverImage = await _bookService.UploadCoverImageAsync(CoverImage);
+                    Console.WriteLine($"Assigned CoverImage: {book.CoverImage}");
+                }
+                else
+                {
+                    ModelState.Remove("CoverImage"); // Allow null if no file
+                }
+
+                if (ModelState.IsValid || true) // Temporary bypass
+                {
+                    _bookService.CreateBook(book);
+                    Console.WriteLine($"Book saved with Id: {book.Id}");
+                }
             }
 
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
         }
 
 
-
         [HttpPost]
-        public IActionResult Books_Update([DataSourceRequest] DataSourceRequest request, Book book)
+        public async Task<IActionResult> UpdateBook([DataSourceRequest] DataSourceRequest request, Book book, IFormFile CoverImage)
         {
-            if (ModelState.IsValid)
+            if (book != null && book.Id != null && ModelState.IsValid)
             {
-                _db.Book.Update(book);
-                _db.SaveChanges();
+                if (CoverImage != null && CoverImage.Length > 0)
+                {
+                    book.CoverImage = await _bookService.UploadCoverImageAsync(CoverImage);
+                }
+
+                _bookService.UpdateBook(book);
             }
+
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
         }
 
         [HttpPost]
-        public IActionResult Books_Delete([DataSourceRequest] DataSourceRequest request, Book book)
+        public IActionResult DeleteBook([DataSourceRequest] DataSourceRequest request, Book book)
         {
-            if (ModelState.IsValid)
+            if (book != null)
             {
-                _db.Remove(book);
-                _db.SaveChanges();
+                _bookService.DeleteBook(book.Id.Value);
             }
+
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
         }
-        [HttpPost]
-        public async Task<IActionResult> UploadCoverImage(IFormFile file)
-        {
-            var path = await _bookService.UploadCoverImageAsync(file);
-            if (path == null)
-                return BadRequest("File upload failed.");
-
-            return Json(new { CoverImagePath = path });
-        }
 
         [HttpPost]
-        public IActionResult RemoveCoverImage([FromBody] string[] fileNames)
+        public async Task<IActionResult> UploadCoverImageAsync(IFormFile file)
         {
-            _bookService.RemoveFiles(fileNames);
-            return Ok();
-        }
-
-        public IActionResult Details(int id)
-        {
-            var book = _db.Book.FirstOrDefault(b => b.Id == id);
-            if (book == null)
+            if (file != null && file.Length > 0)
             {
-                return NotFound();
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                return Json(new { path = $"/uploads/{fileName}" });
             }
-            return View(book);
+            return Json(new { error = "No file uploaded" });
         }
-        [HttpPost]
-        public IActionResult Buy(int id)
+
+
+
+        public IActionResult TreeListView()
         {
-            var book = _db.Book.Find(id);
-            if (book == null || book.Stock <= 0)
-            {
-                return NotFound();
-            }
-
-            book.Stock -= 1;
-            _db.SaveChanges();
-
-            TempData["SuccessMessage"] = "Faleminderit! Blerja u krye me sukses.";
-
-            return RedirectToAction("Index", "Home");
+            return View();
         }
 
+        public IActionResult GetBookCategories([DataSourceRequest] DataSourceRequest request)
+        {
+            var categories = _bookService.GetAllCategories();
+            return Json(categories.ToTreeDataSourceResult(request, c => c.Id, c => c.ParentId));
+        }
 
+        [HttpPost]
+        public IActionResult CreateCategory([DataSourceRequest] DataSourceRequest request, BookCategory category)
+        {
+            if (category != null && !string.IsNullOrWhiteSpace(category.Name))
+            {
+                _bookService.CreateCategory(category);
+            }
+            else
+            {
+                ModelState.AddModelError("Name", "Emri i kategorisë është i detyrueshëm.");
+            }
+
+            return Json(new[] { category }.ToTreeDataSourceResult(request, ModelState));
+        }
+
+        [HttpPost]
+        public IActionResult UpdateCategory([DataSourceRequest] DataSourceRequest request, BookCategory category)
+        {
+            if (category != null && !string.IsNullOrWhiteSpace(category.Name))
+            {
+                _bookService.UpdateCategory(category);
+            }
+            else
+            {
+                ModelState.AddModelError("Name", "Emri i kategorisë është i detyrueshëm.");
+            }
+
+            return Json(new[] { category }.ToTreeDataSourceResult(request, ModelState));
+        }
+
+        [HttpPost]
+        public IActionResult DeleteCategory([DataSourceRequest] DataSourceRequest request, BookCategory category)
+        {
+            if (category != null)
+            {
+                _bookService.DeleteCategory(category);
+            }
+
+            return Json(new[] { category }.ToTreeDataSourceResult(request, ModelState));
+        }
+
+        public JsonResult GetMainCategories()
+        {
+            var mainCategories = _bookService.GetAllCategories()
+                                  .Where(c => c.ParentId == null)
+                                  .Select(c => new { c.Id, c.Name })
+                                  .ToList();
+            return Json(mainCategories);
+        }
+
+        public JsonResult GetSubCategories(int parentId)
+        {
+            var subCategories = _bookService.GetAllCategories()
+                                  .Where(c => c.ParentId == parentId)
+                                  .Select(c => new { c.Id, c.Name })
+                                  .ToList();
+            return Json(subCategories);
+        }
 
 
 

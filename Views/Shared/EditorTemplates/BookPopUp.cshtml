@@ -1,0 +1,102 @@
+﻿@model telerik.Models.Book
+
+@{
+    var categories = (IEnumerable<telerik.Models.BookCategory>)ViewData["Categories"];
+    var parentCategories = categories.Where(c => c.ParentId == null).ToList();
+    var allSubCategories = categories.Where(c => c.ParentId != null).ToList();
+}
+
+<script>
+        function onUploadSuccess(e) {
+            if (e.operation === "upload" && e.response && e.response.path) {
+                $("#CoverImage").val(e.response.path); // Set the hidden field value
+            }
+        }
+
+    $(document).ready(function () {
+        updateStatus();
+
+        $('[name="Stock"]').on('input', updateStatus);
+
+        var allSubCategories = @Html.Raw(Json.Serialize(allSubCategories.Select(c => new { c.Id, c.Name, c.ParentId })));
+
+        $("#CategoryId").data("kendoDropDownList").bind("change", function () {
+            var selectedId = this.value();
+            var subCategory = $("#Genre").data("kendoDropDownList");
+
+            var filtered = allSubCategories.filter(x => x.ParentId == parseInt(selectedId));
+
+            subCategory.setDataSource(new kendo.data.DataSource({
+                data: filtered
+            }));
+
+            subCategory.select(0);
+        });
+    });
+
+        function updateStatus() {
+        var stock = $('[name="Stock"]').val();
+        var status = (parseInt(stock) > 0) ? "I disponueshëm" : "Jo i disponueshëm";
+        $("#statusDisplay").text(status);
+    }
+</script>
+
+<form enctype="multipart/form-data" class="k-edit-form-container">
+    <div class="form-group">
+        <label>Gjuha</label>
+        @(Html.Kendo().DropDownListFor(m => m.CategoryId)
+                .OptionLabel("Zgjidh Gjuhën")
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .BindTo((IEnumerable<object>)ViewData["Languages"] ?? new List<object>())
+                .HtmlAttributes(new { style = "width:100%", @class = "k-form-field" })
+                )
+    </div>
+
+    <div class="form-group">
+        <label>Zhanri (Genre)</label>
+        @(Html.Kendo().DropDownListFor(m => m.Genre)
+                .OptionLabel("Zgjidh Zhanrin")
+                .DataTextField("Name")
+                .DataValueField("Name") // Use Name as both text and value, or define a Genre list
+                .BindTo(new List<string> { "Roman", "History", "Science Fiction" }) // Example genre list
+                .HtmlAttributes(new { style = "width:100%" })
+                )
+    </div>
+
+    <div class="form-group">
+        <label>Titulli</label>
+        @Html.TextBoxFor(m => m.Title, new { @class = "k-textbox", style = "width:100%" })
+    </div>
+
+    <div class="form-group">
+        <label>Autori</label>
+        @Html.TextBoxFor(m => m.Author, new { @class = "k-textbox", style = "width:100%" })
+    </div>
+
+    <div class="form-group">
+        <label>Çmimi</label>
+        @Html.TextBoxFor(m => m.Price, new { @class = "k-textbox", style = "width:100%" })
+    </div>
+
+    <div class="form-group">
+        <label>Sasia</label>
+        @Html.TextBoxFor(m => m.Stock, new { @class = "k-textbox", style = "width:100%" })
+    </div>
+
+    <div class="form-group">
+        <label>Foto</label>
+        @(Html.Kendo().Upload()
+                .Name("CoverImage")
+                .HtmlAttributes(new { aria_label = "Upload cover image" })
+                )
+        @(Html.HiddenFor(m => m.CoverImage))
+    </div>
+
+    
+
+    <div class="form-group">
+        <label>Statusi</label>
+        <span id="statusDisplay"></span>
+    </div>
+</form>

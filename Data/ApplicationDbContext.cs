@@ -9,5 +9,7 @@ namespace telerik.Data
             : base(options) { }
 
         public DbSet<Book> Book { get; set; }
+        public DbSet<BookCategory> BookCategories { get; set; }
+
     }
 }
