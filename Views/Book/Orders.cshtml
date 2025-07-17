@@ -1,0 +1,49 @@
+﻿@model IEnumerable<telerik.Models.Order>
+@using Kendo.Mvc.UI
+
+<h2>Porositë e Bëra</h2>
+<input type="text" id="orderSearch" placeholder="Kërko..." class="form-control" style="max-width: 300px; margin-bottom: 15px;" />
+@(Html.Kendo().Grid(Model)
+    .Name("orderGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.FullName).Title("Emri i Blerësit").Filterable(true);
+        columns.Bound(o => o.Email).Title("Email").Filterable(true);
+        columns.Bound(o => o.Address).Title("Adresa").Filterable(true);
+        columns.Bound(o => o.Book.Title).Title("Libri").Filterable(true);
+        columns.Bound(o => o.Book.Price).Title("Çmimi (€)").Filterable(true);
+        columns.Bound(o => o.CardNumber)
+    .Title("Numri i Kartës")
+    .ClientTemplate("'**** ' + #= CardNumber.slice(-4) #");
+
+        columns.Bound(o => o.OrderDate)
+            .Title("Data")
+            .Format("{0:dd/MM/yyyy HH:mm}")
+            .Filterable(true);
+    })
+    .Filterable(filter => { }) 
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+    .HtmlAttributes(new { style = "margin-top: 30px;" })
+)
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var grid = $("#orderGrid").data("kendoGrid");
+
+            $("#orderSearch").on("keyup", function () {
+                var searchValue = $(this).val();
+                grid.dataSource.filter({
+                    logic: "or",
+                    filters: [
+                        { field: "FullName", operator: "contains", value: searchValue },
+                        { field: "Email", operator: "contains", value: searchValue },
+                        { field: "Address", operator: "contains", value: searchValue },
+                        { field: "Book.Title", operator: "contains", value: searchValue },
+                    ]
+                });
+            });
+        });
+    </script>
+}

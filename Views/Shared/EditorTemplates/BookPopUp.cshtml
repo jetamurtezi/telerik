@@ -6,13 +6,20 @@
     var allSubCategories = categories.Where(c => c.ParentId != null).ToList();
 }
 
-<script>
-        function onUploadSuccess(e) {
-            if (e.operation === "upload" && e.response && e.response.path) {
-                $("#CoverImage").val(e.response.path); // Set the hidden field value
-            }
-        }
 
+<script>
+  function onUploadSuccess(e) {
+    if (e.response && e.response.success) {
+        const imageUrl = e.response.imageUrl;
+        $("#coverImagePath").val(imageUrl);
+    } else {
+        console.error("Upload failed:", e.response.message || "Unknown error");
+    }
+}
+
+</script>
+
+<script>
     $(document).ready(function () {
         updateStatus();
 
@@ -40,7 +47,6 @@
         $("#statusDisplay").text(status);
     }
 </script>
-
 <form enctype="multipart/form-data" class="k-edit-form-container">
     <div class="form-group">
         <label>Gjuha</label>
@@ -48,20 +54,19 @@
                 .OptionLabel("Zgjidh Gjuhën")
                 .DataTextField("Name")
                 .DataValueField("Id")
-                .BindTo((IEnumerable<object>)ViewData["Languages"] ?? new List<object>())
-                .HtmlAttributes(new { style = "width:100%", @class = "k-form-field" })
+                .BindTo(((IEnumerable<telerik.Models.BookCategory>)ViewData["Categories"] ?? new List<telerik.Models.BookCategory>()).Where(c => c.ParentId == null))
+                .HtmlAttributes(new { style = "width:100%" })
                 )
     </div>
 
     <div class="form-group">
-        <label>Zhanri (Genre)</label>
+        <label>Zhanri</label>
         @(Html.Kendo().DropDownListFor(m => m.Genre)
                 .OptionLabel("Zgjidh Zhanrin")
                 .DataTextField("Name")
-                .DataValueField("Name") // Use Name as both text and value, or define a Genre list
-                .BindTo(new List<string> { "Roman", "History", "Science Fiction" }) // Example genre list
-                .HtmlAttributes(new { style = "width:100%" })
-                )
+                .DataValueField("Name")
+                .BindTo(new List<telerik.Models.BookCategory>())
+                .HtmlAttributes(new { style = "width:100%" }))
     </div>
 
     <div class="form-group">
@@ -83,20 +88,78 @@
         <label>Sasia</label>
         @Html.TextBoxFor(m => m.Stock, new { @class = "k-textbox", style = "width:100%" })
     </div>
-
+ 
     <div class="form-group">
         <label>Foto</label>
         @(Html.Kendo().Upload()
-                .Name("CoverImage")
+                .Name("file") // Must match IFormFile parameter
+                .Async(a => a
+                .Save("UploadImage", "Book") // Match the action name and controller
+                .AutoUpload(true) // Upload immediately
+                )
+                .Events(e => e.Success("onUploadSuccess") // Handle the returned path
+                )
+                .Multiple(false)
+                .ShowFileList(true)
                 .HtmlAttributes(new { aria_label = "Upload cover image" })
                 )
-        @(Html.HiddenFor(m => m.CoverImage))
     </div>
+    @Html.HiddenFor(m => m.CoverImage, new { id = "coverImagePath", name = "CoverImage" })
 
-    
 
-    <div class="form-group">
-        <label>Statusi</label>
-        <span id="statusDisplay"></span>
+    <div class="form-group text-right">
+        <button type="submit" class="k-button k-primary" onclick="submitForm(event)">Ruaj</button>
     </div>
 </form>
+
+
+<style>
+    .k-edit-buttons{
+        display: none;
+    }
+</style>
+<script>
+       function submitForm(event) {
+        event.preventDefault();
+
+        const bookData = {
+            CategoryId: $("#CategoryId").data("kendoDropDownList").value(),
+            Genre: $("#Genre").data("kendoDropDownList").value(),
+            Title: $("input[name='Title']").val(),
+            Author: $("input[name='Author']").val(),
+            Price: $("input[name='Price']").val(),
+            Stock: $("input[name='Stock']").val(),
+            CoverImage: $("#coverImagePath").val()
+        };
+
+        console.log("Book data being sent:", bookData);
+
+        $.ajax({
+            url: '@Url.Action("CreateBook", "Book")',
+            type: 'POST',
+            data: bookData,
+            success: function (response) {
+                const grid = $("#bookGrid").data("kendoGrid");
+                if (grid) grid.dataSource.read();
+
+                const win = $(".k-window-content").data("kendoWindow");
+                if (win) win.close();
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Sukses",
+                    text: "Libri u ruajt me sukses!"
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Gabim",
+                    text: "Ndodhi një gabim gjatë ruajtjes."
+                });
+                console.error("Error saving book:", xhr.responseText);
+            }
+        });
+    }
+
+</script>

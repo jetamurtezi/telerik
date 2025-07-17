@@ -19,6 +19,6 @@ namespace telerik.Models
         public string? CoverImage { get; set; }
 
         [NotMapped]
-        public string? InStock => Stock > 0 ? "Available" : "Not Available";
+        public string? InStock => Stock > 0 ? "Ne stock" : "Nuk ka ne stock";
     }
 }

@@ -10,14 +10,14 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/telerik.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/default-theme.css" />
-
     <link href="https://kendo.cdn.telerik.com/themes/10.0.1/bootstrap/bootstrap-main.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <!-- ✅ Scripts: jQuery first -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
     <!-- ✅ Kendo dependencies -->
-    <script src="https://kendo.cdn.telerik.com/2023.1.314/js/jszip.min.js"></script> <!-- optional -->
+    <script src="https://kendo.cdn.telerik.com/2023.1.314/js/jszip.min.js"></script>
     <script src="~/telerik/js/kendo.all.min.js"></script>
     <script src="~/telerik/js/kendo.aspnetmvc.min.js"></script>
 
@@ -26,46 +26,51 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 </head>
 <body>
+
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">telerik</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="TreeListView">Kategorite</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="GridView">Libra</a>
-                        </li>
-                    </ul>
-                </div>
+        <nav class="main-navbar">
+            <div class="nav-logo">
+                <a href="/" class="nav-logo-link">Libraria</a>
             </div>
+
+            <ul class="nav-links">
+                <li><a href="/" class="@(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">Home</a></li>
+                <li><a href="/Book/TreeListView" class="@(ViewContext.RouteData.Values["action"].ToString() == "TreeListView" ? "active" : "")">Kategorite</a></li>
+                <li><a href="/Book/GridView" class="@(ViewContext.RouteData.Values["action"].ToString() == "GridView" ? "active" : "")">Libra</a></li>
+                <li> <a href="/Book/Orders" class="@(ViewContext.RouteData.Values["action"].ToString() == "Orders" ? "active" : "")">Porositë</a></li>
+                <li> <a href="/Book/Dashboard" class="@(ViewContext.RouteData.Values["action"].ToString() == "Dashboard" ? "active" : "")">Dashboard</a></li>
+            </ul>
         </nav>
     </header>
 
-    <div class="container-fluid">
+    <div class="main-content">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container-fluid">
-            &copy; 2025 - telerik - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="custom-footer mt-5">
+        <div class="footer-inner">
+            <p>
+                &copy; @DateTime.Now.Year - telerik. Të gjitha të drejtat e rezervuara.
+                <a href="/Home/Privacy">Privacy</a>
+            </p>
+            <div class="social-icons">
+                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+            </div>
         </div>
     </footer>
 
+
+
+
+
     @RenderSection("Scripts", required: false)
 
-    <!-- ✅ Add this to enable DeferredScripts -->
+    <!-- ✅ Enable Kendo deferred scripts -->
     @Html.Kendo().DeferredScripts()
 </body>
 </html>

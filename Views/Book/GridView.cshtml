@@ -1,56 +1,4 @@
-﻿@(Html.Kendo().Grid<telerik.Models.Book>()
-    .Name("bookGrid")
-    .Columns(columns =>
-    {
-        columns.Bound(b => b.CoverImage)
-            .Title("Foto")
-            .ClientTemplate(
-                "# if (CoverImage && CoverImage !== 'null') { #" +
-                "<img src='#= CoverImage #' alt='Foto' style='max-height:60px;' />" +
-                "# } else { #" +
-                "<img src='/uploads/placeholder.png' alt='Foto' style='max-height:60px;' />" +
-                "# } #")
-            .Width(100);
-        columns.Bound(b => b.Title).Title("Titulli");
-        columns.Bound(b => b.Author).Title("Autori");
-        columns.Bound(b => b.Genre).Title("Zhanri");
-        columns.Bound(b => b.CategoryId)
-            .Title("Gjuha")
-            .ClientTemplate("#= getCategoryName(CategoryId) #");
-        columns.Bound(b => b.Price).Title("Çmimi");
-        columns.Bound(b => b.Stock).Title("Sasia");
-        columns.Command(command =>
-        {
-            command.Edit().Text("Edito");
-            command.Destroy().Text("Fshi");
-        }).Title("Veprime").Width(180);
-    })
-    .ToolBar(toolbar => toolbar.Create().Text("Shto Libër"))
-    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("BookPopUp"))
-    .Pageable()
-    .Sortable()
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .PageSize(10)
-        .Model(model => {
-            model.Id(b => b.Id); // Define the ID field
-            model.Field(b => b.Title).Editable(true);
-            model.Field(b => b.Author).Editable(true);
-            model.Field(b => b.Genre).Editable(true);
-            model.Field(b => b.Price).Editable(true);
-            model.Field(b => b.Stock).Editable(true);
-            model.Field(b => b.CategoryId).Editable(true);
-            model.Field(b => b.CoverImage).Editable(true);
-        })
-        .Read(read => read.Action("GetBooks", "Book").Type(HttpVerbs.Get))
-        .Create(create => create.Action("CreateBook", "Book").Type(HttpVerbs.Post))
-        .Update(update => update.Action("UpdateBook", "Book"))
-        .Destroy(destroy => destroy.Action("DeleteBook", "Book"))
-        .ServerOperation(false) // Disable server operations if not needed
-    )
-)
-
-@section Scripts {
+﻿@section Scripts {
     <script>
         var allSubCategories = @Html.Raw(Json.Serialize(((IEnumerable<telerik.Models.BookCategory>)ViewData["Categories"] ?? new List<telerik.Models.BookCategory>()).Where(c => c.ParentId != null).Select(c => new { c.Id, c.Name, c.ParentId })));
         var parentCategories = @Html.Raw(Json.Serialize(((IEnumerable<telerik.Models.BookCategory>)ViewData["Categories"] ?? new List<telerik.Models.BookCategory>()).Where(c => c.ParentId == null).Select(c => new { c.Id, c.Name })));
@@ -59,14 +7,23 @@
             var match = parentCategories.find(c => c.Id === id);
             return match ? match.Name : "";
         }
+        
+       function onEdit(e) {
+            if (typeof initBookPopUp === 'function') {
+                initBookPopUp(allSubCategories);
+            }
 
-        function onEdit(e) {
-            setTimeout(function () {
-                if (typeof initBookPopUp === 'function') {
-                    initBookPopUp(allSubCategories);
-                }
-            }, 100);
+    var uploader = e.container.find("[data-role='upload']").data("kendoUpload");
+            if (uploader) {
+                uploader.unbind("success"); 
+                uploader.bind("success", function (e) {
+                    if (e.operation === "upload" && e.response && e.response.success) {
+                        e.sender.wrapper.closest("form").find("input[name='CoverImage']").val(e.response.imageUrl);
+                    }
+                });
+            }
         }
+
 
         $(document).ready(function () {
             var grid = $("#bookGrid").data("kendoGrid");
@@ -81,3 +38,51 @@
         });
     </script>
 }
+
+
+@(
+Html.Kendo().Grid<telerik.Models.Book>()
+    .Name("bookGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(b => b.CoverImage)
+            .Title("Foto")
+            .ClientTemplate(
+                "<img src='#= CoverImage #' alt='Foto' style='max-height:60px;' />" )
+            .Width(100);
+        columns.Bound(b => b.Title).Title("Titulli");
+        columns.Bound(b => b.Author).Title("Autori");
+        columns.Bound(b => b.Genre).Title("Zhanri");
+        columns.Bound(b => b.CategoryId)
+            .Title("Gjuha")
+            .ClientTemplate("#= getCategoryName(CategoryId) #");
+        columns.Bound(b => b.Price).Title("Çmimi");
+        columns.Bound(b => b.Stock).Title("Sasia");
+        columns.Bound(b => b.InStock).Title("Disponueshmeria");
+        columns.Command(command =>
+        {
+            command.Edit().Text("Edito");
+            command.Destroy().Text("Fshi");
+        }).Title("Veprime").Width(180);
+    })
+    .ToolBar(toolbar => {
+        toolbar.Create().Text(" SHTO LIBËR").HtmlAttributes(new { @class = "light-blue-btn" });
+        })
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("BookPopUp"))
+    .Events(e => e.Edit("onEdit"))
+    .Pageable()
+    .Sortable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Model(model => {
+            model.Id(b => b.Id);
+        })
+        .Read(read => read.Action("GetBooks", "Book").Type(HttpVerbs.Get))
+        .Create(create => create.Action("CreateBook", "Book").Type(HttpVerbs.Post))
+        .Update(update => update.Action("UpdateBook", "Book"))
+        .Destroy(destroy => destroy.Action("DeleteBook", "Book"))
+        .ServerOperation(false) 
+    )
+)
+

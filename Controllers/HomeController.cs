@@ -4,6 +4,7 @@ using System.Diagnostics;
 using telerik.Data;
 using telerik.Models;
 
+
 namespace telerik.Controllers
 {
     public class HomeController : Controller
@@ -18,8 +19,11 @@ namespace telerik.Controllers
         public IActionResult Index()
         {
             var books = _db.Book.ToList();
+            var categories = _db.BookCategories.ToList();
+            ViewData["Categories"] = categories;
             return View(books);
         }
+
 
         public IActionResult Privacy()
         {

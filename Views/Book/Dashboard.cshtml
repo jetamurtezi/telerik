@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+
+<div class="dashboard-container">
+    <div class="dashboard-card">
+        <h3>📕 Libra të Shitur</h3>
+        <p>@ViewBag.TotalOrders</p>
+    </div>
+    <div class="dashboard-card">
+        <h3>📦 Libra në Stok</h3>
+        <p>@ViewBag.TotalStock</p>
+    </div>
+    <div class="dashboard-card">
+        <h3>📚 Stoku Fillestar</h3>
+        <p>@ViewBag.InitialStock</p>
+    </div>
+</div>
+
+@(Html.Kendo().Chart<telerik.Models.DashboardData>()
+    .Name("dashboardChart")
+    .Title("📈 Statistikat e Librave")
+    .Legend(legend => legend.Position(ChartLegendPosition.Top))
+    .Series(series =>
+    {
+        series.Column(model => model.Value)
+              .Name("Librat")
+              .Color("#2196F3"); // Blu e lehtë
+    })
+    .CategoryAxis(axis => axis
+        .Categories(model => model.Label)
+    )
+    .ValueAxis(axis => axis
+        .Numeric()
+        .Title("Sasia")
+    )
+    .DataSource(ds => ds.Read(read => read.Action("GetDashboardChartData", "Book")))
+    .HtmlAttributes(new { style = "height: 400px;" })
+)
+

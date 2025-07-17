@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -121,5 +122,16 @@ namespace telerik.Services
                 _context.SaveChanges();
             }
         }
+        public void SubmitOrder(Order order)
+        {
+            _context.Orders.Add(order);
+            _context.SaveChanges();
+        }
+
+        public List<Order> GetAllOrders()
+        {
+            return _context.Orders.Include(o => o.Book).ToList();
+        }
+
     }
 }

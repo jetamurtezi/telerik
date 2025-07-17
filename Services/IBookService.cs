@@ -17,6 +17,9 @@ namespace telerik.Services
         void UpdateCategory(BookCategory category);
         void DeleteBook(int bookId);
         void DeleteCategory(BookCategory category);
+        void SubmitOrder(Order order);
+        List<Order> GetAllOrders();
+
 
     }
 }

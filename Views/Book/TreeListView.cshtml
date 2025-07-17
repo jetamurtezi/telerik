@@ -1,26 +1,29 @@
 ﻿@model IEnumerable<telerik.Models.BookCategory>
-
 @{
     ViewData["Title"] = "Kategoritë e Librave";
 }
 
-<button id="addRootCategory" class="k-button k-primary" style="margin-bottom:10px;">
-    + SHTO KATEGORI
-</button>
+<h2 class="page-title">Kategoritë e Librave</h2>
 
-@(Html.Kendo().TreeList<telerik.Models.BookCategory>()
-    .Name("categoryTreeList")
-    .Columns(columns =>
-    {
-        columns.Add().Field(e => e.Name).Title("Kategoria").Width(250);
-        columns.Add().Command(command =>
+<div class="tree-header">
+    <button id="addRootCategory" class="light-blue-btn">+ SHTO KATEGORI</button>
+
+</div>
+
+<div class="tree-wrapper">
+    @(Html.Kendo().TreeList<telerik.Models.BookCategory>()
+        .Name("categoryTreeList")
+        .Columns(columns =>
         {
-            command.Edit().Text("Edito");
-            command.Destroy().Text("Fshi");
-        }).Title("Veprime").Width(200);
-    })
-    .Editable(editable => editable.Mode("inline"))
-    .DataSource(dataSource => dataSource
+            columns.Add().Field(e => e.Name).Title("Kategoria").Width(300);
+            columns.Add().Command(command =>
+            {
+                command.Edit().Text(" EDITO");
+                command.Destroy().Text(" FSHI");
+            }).Title("Veprime").Width(300);
+        })
+        .Editable(editable => editable.Mode("inline"))
+        .DataSource(dataSource => dataSource
         .Model(model =>
         {
             model.Id(m => m.Id);
@@ -31,33 +34,36 @@
         .Create(create => create.Action("CreateCategory", "Book"))
         .Update(update => update.Action("UpdateCategory", "Book"))
         .Destroy(delete => delete.Action("DeleteCategory", "Book"))
-    )
-)
+        )
+        )
+</div>
 
-<script>
-    $(document).ready(function () {
-        var treeList = $("#categoryTreeList").data("kendoTreeList");
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var treeList = $("#categoryTreeList").data("kendoTreeList");
 
-        $("#addRootCategory").click(function () {
-            treeList.addRow();
-        });
+            $("#addRootCategory").click(function () {
+                treeList.addRow();
+            });
 
-        treeList.tbody.on("click", ".add-subcategory", function () {
-            var parentDataItem = treeList.dataItem($(this).closest("tr"));
-            treeList.addRow(parentDataItem);
-        });
+            treeList.tbody.on("click", ".add-subcategory", function () {
+                var parentDataItem = treeList.dataItem($(this).closest("tr"));
+                treeList.addRow(parentDataItem);
+            });
 
-        treeList.bind("dataBound", function () {
-            treeList.tbody.find("tr").each(function () {
-                var dataItem = treeList.dataItem(this);
-                var cell = $(this).find("td").last();
-                cell.find(".add-subcategory").remove();
+            treeList.bind("dataBound", function () {
+                treeList.tbody.find("tr").each(function () {
+                    var dataItem = treeList.dataItem(this);
+                    var cell = $(this).find("td").last();
+                    cell.find(".add-subcategory").remove();
 
-                if (dataItem.ParentId === null) {
-                    $("<button class='k-button add-subcategory'>+ SHTO SUBKATEGORI</button>")
-                        .appendTo(cell);
-                }
+                    if (dataItem.ParentId === null) {
+                        $("<button class='k-button k-button-icontext k-primary add-subcategory'>+ SHTO SUBKATEGORI</button>")
+                            .appendTo(cell);
+                    }
+                });
             });
         });
-    });
-</script>
+    </script>
+}

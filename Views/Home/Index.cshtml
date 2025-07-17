@@ -1,59 +1,97 @@
 ﻿@model IEnumerable<telerik.Models.Book>
 
 @{
-    ViewData["Title"] = "Bookshop Home";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    var categories = (IEnumerable<telerik.Models.BookCategory>)ViewData["Categories"];
+    var languages = categories.Where(c => c.ParentId == null).ToList();
+    var genres = categories.Where(c => c.ParentId != null).Select(c => c.Name).Distinct().ToList();
 }
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="toast-message" id="toastMessage">
+    <div id="successMessage" class="alert alert-success text-center">
         @TempData["SuccessMessage"]
     </div>
+
+    <script>
+        setTimeout(function () {
+            var msg = document.getElementById("successMessage");
+            if (msg) {
+                msg.style.transition = "opacity 0.5s ease-out";
+                msg.style.opacity = 0;
+                setTimeout(function () { msg.remove(); }, 500);
+            }
+        }, 2000);
+    </script>
 }
 
-<div class="container">
-    <div class="sidebar">
-        <h3>Zhanret</h3>
-        <button class="filter-btn" data-genre="All">Të gjitha</button>
-        @foreach (var genre in Model.Select(b => b.Genre).Distinct())
+}
+
+<div class="filters">
+    <div class="filter-group">
+        <h4>Gjuhët</h4>
+        <button class="chip active" data-language="All">Të gjitha</button>
+        @foreach (var lang in languages)
         {
-            <button class="filter-btn" data-genre="@genre">@genre</button>
+            <button class="chip" data-language="@lang.Id">@lang.Name</button>
         }
     </div>
-
-    <div class="card-grid">
-        @foreach (var book in Model)
+    <div class="filter-group">
+        <h4>Zhanret</h4>
+        <button class="chip active" data-genre="All">Të gjitha</button>
+        @foreach (var genre in genres)
         {
-            <a href="@Url.Action("Details", "Book", new { id = book.Id })" class="book-card" data-genre="@book.Genre">
-                <img src="@book.CoverImage" alt="Cover" class="cover-img" />
-                <h4>@book.Title</h4>
-                <p>@book.Author</p>
-                <p><strong>@book.Price €</strong></p>
-            </a>
+            <button class="chip" data-genre="@genre">@genre</button>
         }
     </div>
 </div>
 
+<div class="card-grid">
+    @foreach (var book in Model)
+    {
+        <a href="/Book/Details/@book.Id"
+           class="book-card"
+           data-language="@book.CategoryId"
+           data-genre="@book.Genre">
+            <img src="@book.CoverImage" alt="Cover" style="max-height: 150px;" />
+            <h5>@book.Title</h5>
+            <p><strong>Autori:</strong> @book.Author</p>
+            <p><strong>Gjuha:</strong> @(categories.FirstOrDefault(c => c.Id == book.CategoryId)?.Name)</p>
+            <p><strong>Çmimi:</strong> @book.Price €</p>
+        </a>
+    }
+</div>
+
 @section Scripts {
     <script>
-        document.querySelectorAll(".filter-btn").forEach(btn => {
+        function applyFilters() {
+            const selectedLang = document.querySelector(".chip[data-language].active")?.getAttribute("data-language");
+            const selectedGenre = document.querySelector(".chip[data-genre].active")?.getAttribute("data-genre");
+
+            document.querySelectorAll(".book-card").forEach(card => {
+                const cardLang = card.getAttribute("data-language");
+                const cardGenre = card.getAttribute("data-genre");
+
+                const matchLang = selectedLang === "All" || cardLang === selectedLang;
+                const matchGenre = selectedGenre === "All" || cardGenre === selectedGenre;
+
+                card.style.display = (matchLang && matchGenre) ? "block" : "none";
+            });
+        }
+
+        document.querySelectorAll(".chip[data-language]").forEach(btn => {
             btn.addEventListener("click", () => {
-                const genre = btn.getAttribute("data-genre");
-                document.querySelectorAll(".book-card").forEach(card => {
-                    card.style.display = (genre === "All" || card.getAttribute("data-genre") === genre) ? "block" : "none";
-                });
+                document.querySelectorAll(".chip[data-language]").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                applyFilters();
             });
         });
 
-        window.addEventListener("DOMContentLoaded", () => {
-            const toast = document.getElementById("toastMessage");
-            if (toast) {
-                toast.classList.add("show");
-                setTimeout(() => {
-                    toast.classList.remove("show");
-                }, 3000); 
-            }
+        document.querySelectorAll(".chip[data-genre]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".chip[data-genre]").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                applyFilters();
+            });
         });
     </script>
 }
