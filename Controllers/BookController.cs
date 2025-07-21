@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using telerik.Models;
 using telerik.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace telerik.Controllers
 {
@@ -42,7 +43,6 @@ namespace telerik.Controllers
             Console.WriteLine($"GetBooks result: {Newtonsoft.Json.JsonConvert.SerializeObject(result)}");
             return Json(result);
         }
-
         public async Task<IActionResult> CreateBook([DataSourceRequest] DataSourceRequest request, Book book)
         {
             Console.WriteLine($"Received CreateBook request: ModelState.IsValid = {ModelState.IsValid}");
@@ -119,7 +119,7 @@ namespace telerik.Controllers
 
             return Json(new { success = true, imageUrl });
         }
-
+        //[Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> UpdateBook([DataSourceRequest] DataSourceRequest request, Book book, IFormFile CoverImage)
         {
@@ -135,7 +135,6 @@ namespace telerik.Controllers
 
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
         }
-
         [HttpPost]
         public IActionResult DeleteBook([DataSourceRequest] DataSourceRequest request, Book book)
         {
@@ -146,7 +145,6 @@ namespace telerik.Controllers
 
             return Json(new[] { book }.ToDataSourceResult(request, ModelState));
         }
-
         [HttpPost]
         public async Task<IActionResult> UploadCoverImageAsync(IFormFile file)
         {
@@ -166,18 +164,15 @@ namespace telerik.Controllers
         }
 
 
-
         public IActionResult TreeListView()
         {
             return View();
         }
-
         public IActionResult GetBookCategories([DataSourceRequest] DataSourceRequest request)
         {
             var categories = _bookService.GetAllCategories();
             return Json(categories.ToTreeDataSourceResult(request, c => c.Id, c => c.ParentId));
         }
-
         [HttpPost]
         public IActionResult CreateCategory([DataSourceRequest] DataSourceRequest request, BookCategory category)
         {
@@ -227,7 +222,6 @@ namespace telerik.Controllers
                                   .ToList();
             return Json(mainCategories);
         }
-
         public JsonResult GetSubCategories(int parentId)
         {
             var subCategories = _bookService.GetAllCategories()
@@ -254,12 +248,12 @@ namespace telerik.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+
         public IActionResult Orders()
         {
             var orders = _bookService.GetAllOrders(); 
             return View(orders);
         }
-
 
         public IActionResult Dashboard()
         {

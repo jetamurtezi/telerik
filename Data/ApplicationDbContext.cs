@@ -4,15 +4,15 @@ using telerik.Models;
 
 namespace telerik.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options) { }
+            : base(options)
+        {
+        }
 
         public DbSet<Book> Book { get; set; }
         public DbSet<BookCategory> BookCategories { get; set; }
         public DbSet<Order> Orders { get; set; }
-
-
     }
 }

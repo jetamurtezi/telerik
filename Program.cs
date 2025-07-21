@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using telerik.Data;
 using telerik.Services;
@@ -6,30 +7,32 @@ namespace telerik
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public async static Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+            
 
             builder.Services.AddScoped<IBookService, BookService>();
+
+            builder.Services.AddRazorPages();
             builder.Services.AddKendo();
-            builder.Services.AddMvc().AddRazorRuntimeCompilation().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+
+            builder.Services.AddMvc()
+                .AddRazorRuntimeCompilation()
+                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+
             var app = builder.Build();
 
 
-
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -44,9 +47,8 @@ namespace telerik
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
+
             app.Run();
-
         }
-
     }
 }
